@@ -357,7 +357,7 @@ class YbConnector:
     df2Yb=dfToYb
     
     
-    def fileToYb(self,src,target,verbose=False,ignoreLoadErrors=False):
+    def csvToYb(self,src,target,verbose=False,ignoreLoadErrors=False):
         """ Insert data from a headerless csv into an existing table.
             There are no options to create or truncate; it is up to the
             user to ensure that the table exists in a suitable format for
