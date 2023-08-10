@@ -1,4 +1,4 @@
-__version__="0.2.97"
+__version__="0.2.98"
 __doc__="""
 pybrick uses sqlalchemy to provide a convenient connection to Yellowbrick.
 """
@@ -352,6 +352,46 @@ class YbConnector:
     
     #Alias
     df2Yb=dfToYb
+    
+    
+    def fileToYb(self,src,target,verbose=False,ignoreLoadErrors=False):
+        """ Insert data from a headerless csv into an existing table.
+            There are no options to create or truncate; it is up to the
+            user to ensure that the table exists in a suitable format for
+            loading this file.
+        """
+        def vprint(s):
+            if verbose:
+                print(s)
+        
+        assert os.path.isfile(src),f"Source file doesn't exist: {src}"
+        
+        vprint("Loading by ybload...")
+        os.environ["YBPASSWORD"]=self.pw
+        
+        if sys.platform=='win32':
+            ybin=r"C:\Program Files\Yellowbrick Data\Client Tools\bin\ybload.exe"
+        else:
+            ybin="ybload"
+        
+        cmd=[ybin,
+             '--host',self.host,
+             '--username',self.user,
+             '--dbname',self.db,
+             '--max-bad-rows',"0" if ignoreLoadErrors else "-1",
+             '--csv-skip-header-line','false',
+             '--table',target,
+             src
+        ]
+        vprint(f"Running this now ===> {' '.join(cmd)}")
+        
+        try:
+            res=subprocess.run(cmd,capture_output=True,check=True)
+        except Exception as e:
+            raise RuntimeError(f"There was a problem running ybload.  Make sure it's installed, is on your PATH, and that Java is installed:\n{e}")
+        
+        print("YBload'ed")
+    
     
     def getYbTypesFromDf(self,df):
         """ Try to map.  This is almost vulgar.
