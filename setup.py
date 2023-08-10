@@ -1,47 +1,49 @@
-__DOC__=
+__DOC__=\
 """
 python setup.py bdist_wheel
 python -m twine upload --repository pypi dist/*
 """
 import os
+import sys
 import pdb
 import shutil
 from setuptools import setup,find_packages
 
-def getVersion(path):
-    """ This is embarrassing. """
-    with open(path,"r") as h:
-        while line:=h.readline():
-            if line.startswith("__version__"):
-                v=line.split("=")[1]
-                v=v.strip("\n\'\"")
-                return v
-    raise ValueError("Never found a version.")
+cleanup_only=sys.argv[1]=='cleanup'
 
 #Move some stuff around.
 thefile="pybrick.py"
-work_dir=r"."
-build_dir=r"."
+work_dir=os.path.abspath(".")
+target_dir=os.path.join(work_dir,'pybrick')
 fq_orig=os.path.join(work_dir,thefile)
-fq_target=os.path.join(build_dir,"pybrick",thefile)
-version=getVersion(fq_orig)
 
 #Remove old artifacts.
-try:
-    os.remove(os.path.join(work_dir,f"dist\\pybrick-{version}-py3-none-any.whl"))
-except:
-    pass
+print("Cleaning up old stuff...")
+for sub in ['pybrick.egg-info','build','dist','pybrick','__pycache__']:
+    shutil.rmtree(os.path.join(work_dir,sub),ignore_errors=True)
 
-try:
-    os.remove(fq_target)
-except:
-    pass
+if cleanup_only:
+    print("No build.")
+    sys.exit(0)
 
-shutil.copy(fq_orig,fq_target)
 
+import pybrick
+version=pybrick.__version__
+print("work_dir is",work_dir)
+print("pybrick version is",version)
+
+#Move the required files into position.  I'm pretty sure I've
+#set the project up wrong or am using setup.py wrong... This
+#can't be anything close to a good way of doing it.
+srces=['__init__.py','pybrick.py','ptest.csv']
+os.makedirs(target_dir,exist_ok=True)
+for src in srces:
+    shutil.copy(os.path.join(work_dir,src),
+                os.path.join(target_dir,src))
+                
 
 setup(
-    name = 'pybrick', 
+    name = 'pybrick',
     version=version,
     long_description="""An interface for Yellowbrick data warehouse, written with the data analyst in mind.""",
     long_description_content_type='text/markdown',
