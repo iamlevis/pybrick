@@ -308,7 +308,7 @@ class YbConnector:
             vprint("Loading by ybload...")
             os.environ["YBPASSWORD"]=self.pw
             
-            dump=tempfile.mkstemp(".csv")[1]
+            dfd,dump=tempfile.mkstemp(".csv")
             vprint(f"Dumping local data to {dump}")
             
             #Pandas changed lineterminator at version 1.5.0.  Use inspect to see which one we need.
@@ -341,6 +341,7 @@ class YbConnector:
             except Exception as e:
                 raise RuntimeError(f"There was a problem running ybload.  Make sure it's installed, is on your PATH, and that Java is installed:\n{e}")
             finally:
+                os.close(dfd)
                 os.remove(dump)
             
             lrows = self.tableRowCount(target)
@@ -349,7 +350,7 @@ class YbConnector:
                 vprint(f"Dumped {len(src)} rows, and then loaded {lrows} rows.")
             else:
                 print("WARNING: The number of rows in {target} doesn't match the size of {src}")
-        
+            
         return
     
     #Alias
