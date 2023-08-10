@@ -340,6 +340,8 @@ class YbConnector:
                 res=subprocess.run(cmd,capture_output=True,check=True)
             except Exception as e:
                 raise RuntimeError(f"There was a problem running ybload.  Make sure it's installed, is on your PATH, and that Java is installed:\n{e}")
+            finally:
+                os.remove(dump)
             
             lrows = self.tableRowCount(target)
             if len(src)==lrows or clobber==False:
